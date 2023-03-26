@@ -54,17 +54,51 @@ class Game {
         // this.createSphereCollider(otherCube, 0.5);
 
         // example - setting up a key press event to move an object in the scene
-        document.addEventListener("keypress", (e) => {
+        document.addEventListener("keydown", (e) => {
             e.preventDefault();
 
-            switch (e.key) {
-                case "a":
-                    this.cube.translate(vec3.fromValues(0.5, 0, 0));
+            switch (e.code) {
+                case "KeyA":
+                    //this.cube.translate(vec3.fromValues(0.5, 0, 0));
+                    // Rotate camera around Y
+                    var correctDelta = vec3.create();
+                    vec3.scale(correctDelta, this.state.camera.right, -5); // correctDelta = e . right 
+                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
+                    // update at, right
+                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
+                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
+                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
                     break;
 
-                case "d":
-                    this.cube.translate(vec3.fromValues(-0.5, 0, 0));
+                case "KeyD":
+                    //this.cube.translate(vec3.fromValues(-0.5, 0, 0));
+                    // Rotate camera around Y
+                    var correctDelta = vec3.create();
+                    vec3.scale(correctDelta, this.state.camera.right, 5); // correctDelta = e . right 
+                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
+                    // update at, right
+                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
+                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
+                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
                     break;
+
+
+                case "ArrowUp":
+                    // translaAte both camera center and position
+                    var move = vec3.create();
+                    vec3.scale(move, this.state.camera.at, 5);
+                    vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    break;
+
+                case "ArrowDown":
+                    // translaAte both camera center and position
+                    var move = vec3.create();
+                    vec3.scale(move, this.state.camera.at, -5);
+                    vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    break;
+
 
                 default:
                     break;
