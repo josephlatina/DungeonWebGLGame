@@ -102,7 +102,7 @@ async function main() {
     };
 
     // initialize numLights and pointLights array uniforms
-    uniform int numLights;
+    //uniform int numLights;
     uniform PointLight[2] pointLights;
 
     in vec2 oUV;
@@ -394,7 +394,7 @@ function drawScene(gl, deltaTime, state) {
             let mainLight = state.pointLights[2];
 
             // Light Properties
-            gl.uniform1i(object.programInfo.uniformLocations.numLights, state.numLights);
+            //gl.uniform1i(object.programInfo.uniformLocations.numLights, state.numLights);
             // if (state.pointLights.length > 0) {
             //     for (let i = 0; i < state.pointLights.length; i++) {
             //         gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].position'), state.pointLights[i].position);
