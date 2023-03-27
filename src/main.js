@@ -20,8 +20,8 @@ window.onload = async () => {
  * @param {object - the game object that will use the mesh information} object 
  * @purpose - Helper function called as a callback function when the mesh is done loading for the object
  */
-async function createMesh(mesh, object, vertShader, fragShader) {
-    let testModel = new Model(state.gl, object, mesh);
+async function createMesh(mesh, object, vertShader, fragShader, materialDetails = null) {
+    let testModel = new Model(state.gl, object, mesh, materialDetails);
     testModel.vertShader = vertShader ? vertShader : state.vertShaderSample;
     testModel.fragShader = fragShader ? fragShader : state.fragShaderSample;
     await testModel.setup();
@@ -127,8 +127,10 @@ async function main() {
     // function for calculating colour using Blinn_Phong lighting
     vec3 calculateColours(PointLight point, vec3 ambientVal, vec3 diffuseVal, vec3 specularVal, vec3 normal, vec3 fragPosition, vec3 viewVector, float nVal) {
         
-        vec4 textureColor = vec4(0.0, 1.0, 1.0, 1.0);
-        textureColor = texture(uTexture, oUV);
+        vec4 textureColor = vec4(1.0, 1.0, 1.0, 1.0);
+        if (samplerExists == 1) {
+            textureColor = texture(uTexture, oUV);
+        }
         float distance = length(point.position - fragPosition);
         float attenuation = point.strength / (point.constant + point.linear * distance + point.quadratic * (distance * distance));
 
@@ -155,7 +157,7 @@ async function main() {
         vec3 reflectDirection = reflect(lightDirection, normal);
         float spec = pow(max(dot(normal, halfVector), 0.0), nVal);
         //float spec = pow(max(dot(viewVector, reflectDirection), 1.0), nVal);
-        vec3 specular = spec * specularVal * point.colour * attenuation;
+        vec3 specular = spec * specularVal * point.colour;
 
         // Calculate total 
         vec3 total = ambient + diffuse + specular;
@@ -417,13 +419,14 @@ function drawScene(gl, deltaTime, state) {
                 gl.bindVertexArray(object.buffers.vao);
 
                 //check for diffuse texture and apply it
-                if (object.material.shaderType === 3) {
+                if (object.material.shaderType === 3 || object.material.shaderType === 1) {
                     state.samplerExists = 1;
                     gl.activeTexture(gl.TEXTURE0);
                     gl.uniform1i(object.programInfo.uniformLocations.samplerExists, state.samplerExists);
-                    gl.uniform1i(object.programInfo.uniformLocations.sampler, 0);
+                    gl.uniform1i(object.programInfo.uniformLocations.sampler, object.model.texture);
                     gl.bindTexture(gl.TEXTURE_2D, object.model.texture);
-                } else {
+                }
+                else {
                     gl.activeTexture(gl.TEXTURE0);
                     state.samplerExists = 0;
                     gl.uniform1i(object.programInfo.uniformLocations.samplerExists, state.samplerExists);

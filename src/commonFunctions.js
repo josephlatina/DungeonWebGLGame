@@ -372,6 +372,69 @@ function parseOBJFileToJSON(objFileURL) {
     });
 }
 
+function parseMTLFileToJSON(mtlFileURL) {
+    return new Promise((resolve, reject) => {
+        fetch("/materials/" + mtlFileURL)
+            .then((data) => {
+                return data.text();
+            })
+            .then((text) => {
+                //console.log(text);
+                let res = parseMTL(text);
+                resolve(res);
+            })
+            .catch((err) => {
+                console.error(err);
+                reject(err);
+            })
+    });
+}
+
+function parseMTL(text) {
+
+    const materials = {};
+  let material;
+
+  const keywords = {
+    newmtl(parts, unparsedArgs) {
+      material = {};
+      materials[unparsedArgs] = material;
+    },
+    /* eslint brace-style:0 */
+    Ns(parts)       { material.shininess      = parseFloat(parts[0]); },
+    Ka(parts)       { material.ambient        = parts.map(parseFloat); },
+    Kd(parts)       { material.diffuse        = parts.map(parseFloat); },
+    Ks(parts)       { material.specular       = parts.map(parseFloat); },
+    Ke(parts)       { material.emissive       = parts.map(parseFloat); },
+    Ni(parts)       { material.opticalDensity = parseFloat(parts[0]); },
+    d(parts)        { material.opacity        = parseFloat(parts[0]); },
+    illum(parts)    { material.illum          = parseInt(parts[0]); },
+  };
+
+  const keywordRE = /(\w*)(?: )*(.*)/;
+  const lines = text.split('\n');
+  for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
+    const line = lines[lineNo].trim();
+    if (line === '' || line.startsWith('#')) {
+      continue;
+    }
+    const m = keywordRE.exec(line);
+    if (!m) {
+      continue;
+    }
+    const [, keyword, unparsedArgs] = m;
+    const parts = line.split(/\s+/).slice(1);
+    const handler = keywords[keyword];
+    if (!handler) {
+      console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
+      continue;
+    }
+    handler(parts, unparsedArgs);
+  }
+
+  return materials;
+  }
+
 /**
  * 
  * @param {hex value of color} hex 
@@ -439,12 +502,26 @@ function addCustom(object, state, vertShader = null, fragShader = null) {
 
 async function addMesh(object, vertShader = null, fragShader = null) {
     if (state.meshCache[object.model]) { // a way to load the mesh faster by re-using model data
-        const created = await createMesh(state.meshCache[object.model], object, vertShader, fragShader);
-        return created;
+        if (object.material.shaderType === 2) {
+            const res = await parseMTLFileToJSON(object.diffuseTexture);
+            const resKey = Object.keys(res)[0];
+            const created = await createMesh(state.meshCache[object.model], object, vertShader, fragShader, res[resKey]);
+            return created;
+        } else {
+            const created = await createMesh(state.meshCache[object.model], object, vertShader, fragShader);
+            return created;
+        }
     } else {
         const mesh = await parseOBJFileToJSON(object.model);
         state.meshCache[object.model] = mesh;
-        const created = await createMesh(mesh, object, vertShader, fragShader);
-        return created;
+        if (object.material.shaderType === 2) {
+            const res = await parseMTLFileToJSON(object.diffuseTexture);
+            const resKey = Object.keys(res)[0];
+            const created = await createMesh(mesh, object, vertShader, fragShader, res[resKey]);
+            return created;
+        } else {
+            const created = await createMesh(mesh, object, vertShader, fragShader);
+            return created;
+        }
     }
 }

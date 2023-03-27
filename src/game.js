@@ -82,7 +82,6 @@ class Game {
                     vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
                     break;
 
-
                 case "ArrowUp":
                     // translaAte both camera center and position
                     var move = vec3.create();
@@ -95,6 +94,22 @@ class Game {
                     // translaAte both camera center and position
                     var move = vec3.create();
                     vec3.scale(move, this.state.camera.at, -5);
+                    vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    break;
+
+                case "ArrowRight":
+                    // translaAte both camera center and position
+                    var move = vec3.create();
+                    vec3.scale(move, this.state.camera.right, 0.5);
+                    vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    break;
+
+                case "ArrowLeft":
+                    // translaAte both camera center and position
+                    var move = vec3.create();
+                    vec3.scale(move, this.state.camera.right, -0.5);
                     vec3.add(this.state.camera.front, this.state.camera.front, move);
                     vec3.add(this.state.camera.position, this.state.camera.position, move);
                     break;
