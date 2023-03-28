@@ -153,28 +153,20 @@ class Game {
                 case "KeyZ":
                     // if in overhead view,
                     if (this.state.mode == 0) {
-                        // orient this.camera front to the player's front
-                        // this.camera.front = JSON.parse(JSON.stringify(this.player.front));
-                        // // place this.camera position to player level
-                        // this.camera.position[1] = 20;
-                        // switch this.camera mode
-                        this.state.mode = 1;
-                        this.camera = this.state.camera[1];
+                        this.state.mode = 1; // change camera mode to player view
+                        this.camera = this.state.camera[1]; // configure camera settings accordingly
+                        // change the camera's position such that it's aligned with player's current position
                         const position = JSON.parse(JSON.stringify(this.player.model.position));
                         this.camera.position = [position[0], 25, position[2]];
-                        console.log(this.camera.position[1]);
                     }
                     // if in first person view,
                     else if (this.state.mode == 1) {
-                        // save 1st person this.camera front to player's front
-                        // this.player.front = JSON.parse(JSON.stringify(this.camera.front));
-                        // // orient this.camera front to the fixed overhead angle
-                        // this.camera.front = JSON.parse(JSON.stringify(this.camera.fixed));
-                        // // place this.camera position to overhead view
-                        // this.camera.position[1] = 100;
                         // switch this.camera mode
                         this.state.mode = 0;
                         this.camera = this.state.camera[0];
+                        // change camera's position accordingly
+                        const position = JSON.parse(JSON.stringify(this.player.model.position));
+                        this.camera.position = [position[0], 80, position[2]];
                     }
                     break;
                 case "KeyA":
