@@ -117,31 +117,41 @@ class Game {
 
         // example - set an object in onStart before starting our render loop!
         this.player = getObject(this.state, "player");
-        const coin = getObject(this.state, "Coin-7"); // we wont save this as instance var since we dont plan on using it in update
-        const enemy = getObject(this.state, "Enemy-3");
         const crate = getObject(this.state, "Crate-1");
 
         // example - create sphere colliders on our two objects as an example, we give 2 objects colliders otherwise
         // no collision can happen
         // create sphere collider on main player
         this.createSphereCollider(this.player, 5, (otherObject) => {
-            // console.log(`This is a custom collision of ${otherObject.name}`)
+            console.log(`This is a custom collision of ${otherObject.name}`)
         });
         // create sphere collider on coins
-        this.createSphereCollider(coin, 3, (otherObject) => {
-            this.state.coins += 1;
-            coin.collider.hit = true;
-            for (let i=0; i < 4; i++) {
-                this.player.collider.shouldMove[i] = true;
+        for (let i = 0; i < state.objects.length; i++) {
+            if (state.objects[i].name.includes("Coin")) {
+                this.state.objects[i].model.scale = [3, 3, 3];
+                this.state.objects[i].model.position[1] = 3;
+                this.createSphereCollider(state.objects[i], 3, (otherObject) => {
+                    this.state.coins += 1;
+                    this.state.objects[i].collider.hit = true;
+                    for (let i=0; i < 4; i++) {
+                        this.player.collider.shouldMove[i] = true;
+                    }
+                })
             }
-        })
+        }
         // create sphere collider on enemies
-        this.createSphereCollider(enemy, 10, (otherObject) => {
-            // console.log(`This is a custom collision of ${otherObject.name}`);
-            for (let i=0; i < 4; i++) {
-                otherObject.collider.shouldMove[i] = false;
+        for (let i = 0; i < state.objects.length; i++) {
+            if (state.objects[i].name.includes("Enemy")) {
+                this.state.objects[i].model.scale = [15, 15, 15];
+                this.state.objects[i].model.position[1] = 10;
+                this.createSphereCollider(state.objects[i], 10, (otherObject) => {
+                    for (let i=0; i < 4; i++) {
+                        otherObject.collider.shouldMove[i] = false;
+                    }
+                })
             }
-        });
+        }
+        // create sphere collider on other objects
         this.createSphereCollider(crate, 6, (otherObject) => {
             console.log(`This is a custom collision of ${otherObject.name}`)
         });
@@ -198,8 +208,8 @@ class Game {
                     break;
 
                 case "ArrowUp":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[0] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[0] = false;
                     }
                     if (this.player.collider.shouldMove[0]) {
                         if (this.state.mode == 1) {
@@ -221,8 +231,8 @@ class Game {
                     break;
 
                 case "ArrowDown":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[1] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[1] = false;
                     }
                     if (this.player.collider.shouldMove[1]) {
                         if (this.state.mode == 1) {
@@ -244,8 +254,8 @@ class Game {
                     break;
 
                 case "ArrowRight":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[2] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[2] = false;
                     }
                     if (this.player.collider.shouldMove[2]) {
                         if (this.state.mode == 1) {
@@ -267,8 +277,8 @@ class Game {
                     break;
 
                 case "ArrowLeft":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[3] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[3] = false;
                     }
                     if (this.player.collider.shouldMove[3]) {
                         if (this.state.mode == 1) {
