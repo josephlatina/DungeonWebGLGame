@@ -409,6 +409,8 @@ function parseMTL(text) {
     Ni(parts)       { material.opticalDensity = parseFloat(parts[0]); },
     d(parts)        { material.opacity        = parseFloat(parts[0]); },
     illum(parts)    { material.illum          = parseInt(parts[0]); },
+    Tr(parts)    { material.Tr          = parseFloat(parts[0]); },
+    Tf(parts)    { material.Tr          = parseFloat(parts[0]); },
   };
 
   const keywordRE = /(\w*)(?: )*(.*)/;

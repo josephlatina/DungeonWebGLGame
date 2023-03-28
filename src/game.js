@@ -43,7 +43,7 @@ class Game {
         }, false);
 
         // example - set an object in onStart before starting our render loop!
-        this.cube = getObject(this.state, "cube1");
+        this.player = getObject(this.state, "player");
         const otherCube = getObject(this.state, "cube2"); // we wont save this as instance var since we dont plan on using it in update
 
         // example - create sphere colliders on our two objects as an example, we give 2 objects colliders otherwise
@@ -83,35 +83,59 @@ class Game {
                     break;
 
                 case "ArrowUp":
-                    // translaAte both camera center and position
-                    var move = vec3.create();
-                    vec3.scale(move, this.state.camera.at, 5);
-                    vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    // 1st person - translate both camera center and position
+                    // var move = vec3.create();
+                    // vec3.scale(move, this.state.camera.at, 5);
+                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+
+                    // overhead view - translate position
+                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(-5, 0, 0));
+
+                    // translate player
+                    this.player.translate(vec3.fromValues(-5, 0, 0));
                     break;
 
                 case "ArrowDown":
-                    // translaAte both camera center and position
-                    var move = vec3.create();
-                    vec3.scale(move, this.state.camera.at, -5);
-                    vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    // 1st person - translate both camera center and position
+                    // var move = vec3.create();
+                    // vec3.scale(move, this.state.camera.at, -5);
+                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+
+                    // overhead view - translate position
+                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(5, 0, 0));
+
+                    // translate player
+                    this.player.translate(vec3.fromValues(5, 0, 0));
                     break;
 
                 case "ArrowRight":
-                    // translaAte both camera center and position
-                    var move = vec3.create();
-                    vec3.scale(move, this.state.camera.right, 0.5);
-                    vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    // 1st person - translate both camera center and position
+                    // var move = vec3.create();
+                    // vec3.scale(move, this.state.camera.right, 0.5);
+                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    
+                    // overhead view - translate position
+                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, -5));
+
+                    // translate player
+                    this.player.translate(vec3.fromValues(0, 0, -5));
                     break;
 
                 case "ArrowLeft":
-                    // translaAte both camera center and position
-                    var move = vec3.create();
-                    vec3.scale(move, this.state.camera.right, -0.5);
-                    vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    // 1st person - translate both camera center and position
+                    // var move = vec3.create();
+                    // vec3.scale(move, this.state.camera.right, -0.5);
+                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    
+                     // overhead view - translate position
+                     vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, 5));
+
+                     // translate player
+                     this.player.translate(vec3.fromValues(0, 0, 5));
                     break;
 
 
