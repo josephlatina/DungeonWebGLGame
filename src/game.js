@@ -225,17 +225,21 @@ class Game {
                         otherObject.collider.shouldMove[1] = false;
                     }
                     if (this.player.collider.shouldMove[1]) {
-                        // 1st person - translate both this.camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.camera.at, -5);
-                        // vec3.add(this.camera.front, this.camera.front, move);
-                        // vec3.add(this.camera.position, this.camera.position, move);
-
-                        // overhead view - translate position
-                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, 5));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(0, 0, 5));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.at, -5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, 5));
+                            // translate player
+                            this.player.translate(vec3.fromValues(0, 0, 5));
+                        }
                     }
                     break;
 
@@ -244,17 +248,21 @@ class Game {
                         otherObject.collider.shouldMove[2] = false;
                     }
                     if (this.player.collider.shouldMove[2]) {
-                        // 1st person - translate both this.camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.camera.right, 0.5);
-                        // vec3.add(this.camera.front, this.camera.front, move);
-                        // vec3.add(this.camera.position, this.camera.position, move);
-                        
-                        // overhead view - translate position
-                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(5, 0, 0));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(5, 0, 0));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.right, 0.5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(5, 0, 0));
+                            // translate player
+                            this.player.translate(vec3.fromValues(5, 0, 0));
+                        }
                     }
                     break;
 
@@ -263,17 +271,21 @@ class Game {
                         otherObject.collider.shouldMove[3] = false;
                     }
                     if (this.player.collider.shouldMove[3]) {
-                        // 1st person - translate both this.camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.camera.right, -0.5);
-                        // vec3.add(this.camera.front, this.camera.front, move);
-                        // vec3.add(this.camera.position, this.camera.position, move);
-                        
-                        // overhead view - translate position
-                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(-5, 0, 0));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(-5, 0, 0));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.right, -0.5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(-5, 0, 0));
+                            // translate player
+                            this.player.translate(vec3.fromValues(-5, 0, 0));
+                        }
                     }
                     break;
 
