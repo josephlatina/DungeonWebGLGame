@@ -1,0 +1,19 @@
+newmtl phong1SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 0.00 0.00 0.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+Ns 18.00
+newmtl phong2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Creature_Body_Color.jpg
+bump  -bm 1 Creature_Body_normal.jpg
+Ni 1.00
+Ks 0.00 0.00 0.00
+map_Ks Creature_Body_reflection.jpg
+Ns 18.00
