@@ -11,27 +11,99 @@ class Game {
     }
 
     // example - create a collider on our object with various fields we might need (you will likely need to add/remove/edit how this works)
-    // createSphereCollider(object, radius, onCollide = null) {
-    //     object.collider = {
-    //         type: "SPHERE",
-    //         radius: radius,
-    //         onCollide: onCollide ? onCollide : (otherObject) => {
-    //             console.log(`Collided with ${otherObject.name}`);
-    //         }
-    //     };
-    //     this.collidableObjects.push(object);
-    // }
+    createSphereCollider(object, radius, onCollide = null) {
+        object.collider = {
+            type: "SPHERE",
+            radius: radius,
+            shouldMove: [true, true, true, true],
+            hit: false,
+            onCollide: onCollide ? onCollide : (otherObject) => {
+                console.log(`Collided with ${otherObject.name}`);
+            }
+        };
+        this.collidableObjects.push(object);
+    }
+
+    createBoxCollider(object, onCollide = null) {
+        object.collider = {
+            type: "BOX",
+            minX: object.model.scale[0] == 1 ? object.model.position[0] - (0.5)*object.model.scale[0]/2 : object.model.position[0] - (0.5)*object.model.scale[0]/2 - 0.25,
+            maxX: object.model.scale[0] == 1 ? object.model.position[0] + (0.5)*object.model.scale[0]/2 : object.model.position[0] + (0.5)*object.model.scale[0]/2 + 0.25,
+            minY: object.model.scale[1] == 1 ? object.model.position[1] - (0.5)*object.model.scale[1]/2 : object.model.position[1] - (0.5)*object.model.scale[1]/2 - 0.25,
+            maxY: object.model.scale[1] == 1 ? object.model.position[1] + (0.5)*object.model.scale[1]/2 : object.model.position[1] + (0.5)*object.model.scale[1]/2 + 0.25,
+            minZ: object.model.scale[2] == 1 ? object.model.position[2] - (0.5)*object.model.scale[2]/2 : object.model.position[2] - (0.5)*object.model.scale[2]/2 - 0.25,
+            maxZ: object.model.scale[2] == 1 ? object.model.position[2] + (0.5)*object.model.scale[2]/2 : object.model.position[2] + (0.5)*object.model.scale[2]/2 + 0.25,
+            hit: false,
+            onCollide: onCollide ? onCollide : (otherObject) => {
+                console.log(`Collided with ${otherObject.name}`);
+                console.log(object.collider);
+            }
+        };
+        this.collidableObjects.push(object);
+    }
 
     // example - function to check if an object is colliding with collidable objects
-    // checkCollision(object) {
-    //     // loop over all the other collidable objects 
-    //     this.collidableObjects.forEach(otherObject => {
-    //         // do a check to see if we have collided, if we have we can call object.onCollide(otherObject) which will
-    //         // call the onCollide we define for that specific object. This way we can handle collisions identically for all
-    //         // objects that can collide but they can do different things (ie. player colliding vs projectile colliding)
-    //         // use the modeling transformation for object and otherObject to transform position into current location
-    //     });
-    // }
+    checkCollision(object) {
+        //object should be able to move right if collision is not detected
+        for (let i=0; i < 4; i++) {
+            object.collider.shouldMove[i] = true;
+        }
+        // loop over all the other collidable objects 
+        this.collidableObjects.forEach(otherObject => {
+            // do a check to see if we have collided, if we have we can call object.onCollide(otherObject) which will
+            // call the onCollide we define for that specific object. This way we can handle collisions identically for all
+            // objects that can collide but they can do different things (ie. player colliding vs projectile colliding)
+            // use the modeling transformation for object and otherObject to transform position into current location
+            if (object != otherObject && otherObject.collider.type == "SPHERE") {
+                const distance = Math.sqrt(
+                    (object.model.position[0] - otherObject.model.position[0]) * (object.model.position[0] - otherObject.model.position[0]) +
+                    // (object.model.position[1] - otherObject.model.position[1]) * (object.model.position[1] - otherObject.model.position[1]) +
+                    (object.model.position[2] - otherObject.model.position[2]) * (object.model.position[2] - otherObject.model.position[2])
+                );
+
+                if (distance < object.collider.radius + otherObject.collider.radius) {
+                    object.collider.onCollide(otherObject);
+                    otherObject.collider.onCollide(object);
+                }
+            }
+
+            if (object != otherObject && otherObject.collider.type == "BOX") {
+                const x = Math.max(otherObject.collider.minX, Math.min(object.model.position[0], otherObject.collider.maxX));
+                // const y = Math.max(otherObject.collider.minY, Math.min(object.model.position[1], otherObject.collider.maxY));
+                const z = Math.max(otherObject.collider.minZ, Math.min(object.model.position[2], otherObject.collider.maxZ));
+
+                const distance = Math.sqrt(
+                    (x - object.model.position[0]) * (x - object.model.position[0]) +
+                    // (y - object.model.position[1]) * (y - object.model.position[1]) +
+                    (z - object.model.position[2]) * (z - object.model.position[2])
+                );
+
+                if (distance < object.collider.radius) {
+                    const xDist = x - object.model.position[0];
+                    // const yDist = y - object.model.position[1];
+                    const zDist = z - object.model.position[2];
+                    console.log(xDist);
+                    console.log(x);
+                    console.log()
+                    if (xDist < object.collider.radius && xDist > 0) {
+                        object.collider.shouldMove[0] = false;
+                    }
+                    if (xDist < object.collider.radius && xDist < 0) {
+                        object.collider.shouldMove[1] = false;
+                    }
+                    if (zDist < object.collider.radius && zDist > 0) {
+                        object.collider.shouldMove[2] = false;
+                    }
+                    if (zDist < object.collider.radius && zDist < 0) {
+                        object.collider.shouldMove[3] = false;
+                    }
+                    object.collider.onCollide(otherObject);
+                    otherObject.collider.onCollide(object);
+                }
+            }
+
+        });
+    }
 
     // runs once on startup after the scene loads the objects
     async onStart() {
@@ -44,15 +116,30 @@ class Game {
 
         // example - set an object in onStart before starting our render loop!
         this.player = getObject(this.state, "player");
-        const otherCube = getObject(this.state, "cube2"); // we wont save this as instance var since we dont plan on using it in update
+        const coin = getObject(this.state, "Coin-7"); // we wont save this as instance var since we dont plan on using it in update
+        const enemy = getObject(this.state, "Enemy-3");
 
         // example - create sphere colliders on our two objects as an example, we give 2 objects colliders otherwise
         // no collision can happen
-        // this.createSphereCollider(this.cube, 0.5, (otherObject) => {
-        //     console.log(`This is a custom collision of ${otherObject.name}`)
-        // });
-        // this.createSphereCollider(otherCube, 0.5);
-
+        // create sphere collider on main player
+        this.createSphereCollider(this.player, 5, (otherObject) => {
+            // console.log(`This is a custom collision of ${otherObject.name}`)
+        });
+        // create sphere collider on coins
+        this.createSphereCollider(coin, 3, (otherObject) => {
+            this.state.coins += 1;
+            coin.collider.hit = true;
+            for (let i=0; i < 4; i++) {
+                this.player.collider.shouldMove[i] = true;
+            }
+        })
+        // create sphere collider on enemies
+        this.createSphereCollider(enemy, 10, (otherObject) => {
+            // console.log(`This is a custom collision of ${otherObject.name}`);
+            for (let i=0; i < 4; i++) {
+                otherObject.collider.shouldMove[i] = false;
+            }
+        });
         // example - setting up a key press event to move an object in the scene
         document.addEventListener("keydown", (e) => {
             e.preventDefault();
@@ -83,59 +170,67 @@ class Game {
                     break;
 
                 case "ArrowUp":
-                    // 1st person - translate both camera center and position
-                    // var move = vec3.create();
-                    // vec3.scale(move, this.state.camera.at, 5);
-                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    if (this.player.collider.shouldMove[0]) {
+                        // 1st person - translate both camera center and position
+                        // var move = vec3.create();
+                        // vec3.scale(move, this.state.camera.at, 5);
+                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
 
-                    // overhead view - translate position
-                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(-5, 0, 0));
+                        // overhead view - translate position
+                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, -5));
 
-                    // translate player
-                    this.player.translate(vec3.fromValues(-5, 0, 0));
+                        // translate player
+                        this.player.translate(vec3.fromValues(0, 0, -5));
+                    }
                     break;
 
                 case "ArrowDown":
-                    // 1st person - translate both camera center and position
-                    // var move = vec3.create();
-                    // vec3.scale(move, this.state.camera.at, -5);
-                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                    if (this.player.collider.shouldMove[1]) {
+                        // 1st person - translate both camera center and position
+                        // var move = vec3.create();
+                        // vec3.scale(move, this.state.camera.at, -5);
+                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
 
-                    // overhead view - translate position
-                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(5, 0, 0));
+                        // overhead view - translate position
+                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, 5));
 
-                    // translate player
-                    this.player.translate(vec3.fromValues(5, 0, 0));
+                        // translate player
+                        this.player.translate(vec3.fromValues(0, 0, 5));
+                    }
                     break;
 
                 case "ArrowRight":
-                    // 1st person - translate both camera center and position
-                    // var move = vec3.create();
-                    // vec3.scale(move, this.state.camera.right, 0.5);
-                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
-                    
-                    // overhead view - translate position
-                    vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, -5));
+                    if (this.player.collider.shouldMove[2]) {
+                        // 1st person - translate both camera center and position
+                        // var move = vec3.create();
+                        // vec3.scale(move, this.state.camera.right, 0.5);
+                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                        
+                        // overhead view - translate position
+                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(5, 0, 0));
 
-                    // translate player
-                    this.player.translate(vec3.fromValues(0, 0, -5));
+                        // translate player
+                        this.player.translate(vec3.fromValues(5, 0, 0));
+                    }
                     break;
 
                 case "ArrowLeft":
-                    // 1st person - translate both camera center and position
-                    // var move = vec3.create();
-                    // vec3.scale(move, this.state.camera.right, -0.5);
-                    // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                    // vec3.add(this.state.camera.position, this.state.camera.position, move);
-                    
-                     // overhead view - translate position
-                     vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, 5));
+                    if (this.player.collider.shouldMove[3]) {
+                        // 1st person - translate both camera center and position
+                        // var move = vec3.create();
+                        // vec3.scale(move, this.state.camera.right, -0.5);
+                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
+                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                        
+                        // overhead view - translate position
+                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(-5, 0, 0));
 
-                     // translate player
-                     this.player.translate(vec3.fromValues(0, 0, 5));
+                        // translate player
+                        this.player.translate(vec3.fromValues(-5, 0, 0));
+                    }
                     break;
 
 
@@ -211,6 +306,6 @@ class Game {
 
 
         // example - call our collision check method on our cube
-        // this.checkCollision(this.cube);
+        this.checkCollision(this.player);
     }
 }

@@ -449,7 +449,7 @@ function drawScene(gl, deltaTime, state) {
                 const offset = 0; // Number of elements to skip before starting
 
                 //if its a mesh then we don't use an index buffer and use drawArrays instead of drawElements
-                if (object.type === "mesh" || object.type === "meshCustom") {
+                if ((object.type === "mesh" || object.type === "meshCustom") && object.collider?.hit == false) {
                     gl.drawArrays(gl.TRIANGLES, offset, object.buffers.numVertices / 3);
                 } else {
                     gl.drawElements(gl.TRIANGLES, object.buffers.numVertices, gl.UNSIGNED_SHORT, offset);
