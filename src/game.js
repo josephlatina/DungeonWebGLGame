@@ -118,6 +118,7 @@ class Game {
         this.player = getObject(this.state, "player");
         const coin = getObject(this.state, "Coin-7"); // we wont save this as instance var since we dont plan on using it in update
         const enemy = getObject(this.state, "Enemy-3");
+        const crate = getObject(this.state, "Crate-1");
 
         // example - create sphere colliders on our two objects as an example, we give 2 objects colliders otherwise
         // no collision can happen
@@ -139,6 +140,9 @@ class Game {
             for (let i=0; i < 4; i++) {
                 otherObject.collider.shouldMove[i] = false;
             }
+        });
+        this.createSphereCollider(crate, 6, (otherObject) => {
+            console.log(`This is a custom collision of ${otherObject.name}`)
         });
         // example - setting up a key press event to move an object in the scene
         document.addEventListener("keydown", (e) => {
@@ -170,6 +174,9 @@ class Game {
                     break;
 
                 case "ArrowUp":
+                    crate.collider.onCollide = (otherObject) => {
+                        otherObject.collider.shouldMove[0] = false;
+                    }
                     if (this.player.collider.shouldMove[0]) {
                         // 1st person - translate both camera center and position
                         // var move = vec3.create();
@@ -186,6 +193,9 @@ class Game {
                     break;
 
                 case "ArrowDown":
+                    crate.collider.onCollide = (otherObject) => {
+                        otherObject.collider.shouldMove[1] = false;
+                    }
                     if (this.player.collider.shouldMove[1]) {
                         // 1st person - translate both camera center and position
                         // var move = vec3.create();
@@ -202,6 +212,9 @@ class Game {
                     break;
 
                 case "ArrowRight":
+                    crate.collider.onCollide = (otherObject) => {
+                        otherObject.collider.shouldMove[2] = false;
+                    }
                     if (this.player.collider.shouldMove[2]) {
                         // 1st person - translate both camera center and position
                         // var move = vec3.create();
@@ -218,6 +231,9 @@ class Game {
                     break;
 
                 case "ArrowLeft":
+                    crate.collider.onCollide = (otherObject) => {
+                        otherObject.collider.shouldMove[3] = false;
+                    }
                     if (this.player.collider.shouldMove[3]) {
                         // 1st person - translate both camera center and position
                         // var move = vec3.create();
