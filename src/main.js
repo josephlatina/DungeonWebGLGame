@@ -296,6 +296,10 @@ function drawScene(gl, deltaTime, state) {
     gl.clearDepth(1.0); // Clear everything
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    let camera = state.camera[0];
+    if (state.mode === 1) {
+        camera = state.camera[1];
+    }
     // sort objects by nearness to camera
     let sorted = state.objects.sort((a, b) => {
         let aCentroidFour = vec4.fromValues(a.centroid[0], a.centroid[1], a.centroid[2], 1.0);
@@ -304,8 +308,8 @@ function drawScene(gl, deltaTime, state) {
         let bCentroidFour = vec4.fromValues(b.centroid[0], b.centroid[1], b.centroid[2], 1.0);
         vec4.transformMat4(bCentroidFour, bCentroidFour, b.modelMatrix);
 
-        return vec3.distance(state.camera.position, vec3.fromValues(aCentroidFour[0], aCentroidFour[1], aCentroidFour[2]))
-            >= vec3.distance(state.camera.position, vec3.fromValues(bCentroidFour[0], bCentroidFour[1], bCentroidFour[2])) ? -1 : 1;
+        return vec3.distance(camera.position, vec3.fromValues(aCentroidFour[0], aCentroidFour[1], aCentroidFour[2]))
+            >= vec3.distance(camera.position, vec3.fromValues(bCentroidFour[0], bCentroidFour[1], bCentroidFour[2])) ? -1 : 1;
     });
 
     // iterate over each object and render them
@@ -349,15 +353,15 @@ function drawScene(gl, deltaTime, state) {
             // View Matrix & Camera ....
             let viewMatrix = mat4.create();
             let camFront = vec3.fromValues(0, 0, 0);
-            vec3.add(camFront, state.camera.position, state.camera.front);
+            vec3.add(camFront, camera.position, camera.front);
             mat4.lookAt(
                 viewMatrix,
-                state.camera.position,
+                camera.position,
                 camFront,
-                state.camera.up,
+                camera.up,
             );
             gl.uniformMatrix4fv(object.programInfo.uniformLocations.view, false, viewMatrix);
-            gl.uniform3fv(object.programInfo.uniformLocations.cameraPosition, state.camera.position);
+            gl.uniform3fv(object.programInfo.uniformLocations.cameraPosition, camera.position);
             state.viewMatrix = viewMatrix;
 
             // Model Matrix ....

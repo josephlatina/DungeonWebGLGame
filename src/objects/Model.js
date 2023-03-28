@@ -16,6 +16,7 @@ class Model extends RenderObject {
             alpha: materialDetails != null ? materialDetails.opacity : object.material.alpha,
             n: materialDetails != null ? materialDetails.shininess : object.material.n,
         }
+        this.front = object.front;
     }
 
     async setup() {

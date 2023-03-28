@@ -466,6 +466,7 @@ function parseSceneFile(file, state) {
                 state.pointLights = jData[0].pointLights;
                 state.settings = jData[0].settings;
                 state.camera = state.settings.camera;
+                state.mode = state.settings.mode;
                 state.numberOfObjectsToLoad = jData[0].objects.length;
                 resolve();
             })

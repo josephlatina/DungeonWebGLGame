@@ -3,6 +3,7 @@ class Game {
         this.state = state;
         this.spawnedObjects = [];
         this.collidableObjects = [];
+        this.camera = this.state.mode == 0 ? this.state.camera[0] : this.state.camera[1];
     }
 
     // example - we can add our own custom method to our game and call it using 'this.customMethod()'
@@ -149,28 +150,59 @@ class Game {
             e.preventDefault();
 
             switch (e.code) {
+                case "KeyZ":
+                    // if in overhead view,
+                    if (this.state.mode == 0) {
+                        // orient this.camera front to the player's front
+                        // this.camera.front = JSON.parse(JSON.stringify(this.player.front));
+                        // // place this.camera position to player level
+                        // this.camera.position[1] = 20;
+                        // switch this.camera mode
+                        this.state.mode = 1;
+                        this.camera = this.state.camera[1];
+                        const position = JSON.parse(JSON.stringify(this.player.model.position));
+                        this.camera.position = [position[0], 25, position[2]];
+                        console.log(this.camera.position[1]);
+                    }
+                    // if in first person view,
+                    else if (this.state.mode == 1) {
+                        // save 1st person this.camera front to player's front
+                        // this.player.front = JSON.parse(JSON.stringify(this.camera.front));
+                        // // orient this.camera front to the fixed overhead angle
+                        // this.camera.front = JSON.parse(JSON.stringify(this.camera.fixed));
+                        // // place this.camera position to overhead view
+                        // this.camera.position[1] = 100;
+                        // switch this.camera mode
+                        this.state.mode = 0;
+                        this.camera = this.state.camera[0];
+                    }
+                    break;
                 case "KeyA":
-                    //this.cube.translate(vec3.fromValues(0.5, 0, 0));
-                    // Rotate camera around Y
-                    var correctDelta = vec3.create();
-                    vec3.scale(correctDelta, this.state.camera.right, -5); // correctDelta = e . right 
-                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
-                    // update at, right
-                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
-                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
-                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
+                    if (this.state.mode == 1) {
+                        //this.cube.translate(vec3.fromValues(0.5, 0, 0));
+                        // Rotate this.camera around Y
+                        var correctDelta = vec3.create();
+                        vec3.scale(correctDelta, this.camera.right, -5); // correctDelta = e . right 
+                        vec3.add(this.camera.front, this.camera.front, correctDelta); // front + correctDelta
+                        // update at, right
+                        vec3.sub(this.camera.at, this.camera.front, this.camera.position); // at = front - position
+                        vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                        vec3.cross(this.camera.right, this.camera.at, this.camera.up); // right = at x up
+                    }
                     break;
 
                 case "KeyD":
-                    //this.cube.translate(vec3.fromValues(-0.5, 0, 0));
-                    // Rotate camera around Y
-                    var correctDelta = vec3.create();
-                    vec3.scale(correctDelta, this.state.camera.right, 5); // correctDelta = e . right 
-                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
-                    // update at, right
-                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
-                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
-                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
+                    if (this.state.mode == 1) {
+                        //this.cube.translate(vec3.fromValues(-0.5, 0, 0));
+                        // Rotate this.camera around Y
+                        var correctDelta = vec3.create();
+                        vec3.scale(correctDelta, this.camera.right, 5); // correctDelta = e . right 
+                        vec3.add(this.camera.front, this.camera.front, correctDelta); // front + correctDelta
+                        // update at, right
+                        vec3.sub(this.camera.at, this.camera.front, this.camera.position); // at = front - position
+                        vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                        vec3.cross(this.camera.right, this.camera.at, this.camera.up); // right = at x up
+                    }
                     break;
 
                 case "ArrowUp":
@@ -178,17 +210,21 @@ class Game {
                         otherObject.collider.shouldMove[0] = false;
                     }
                     if (this.player.collider.shouldMove[0]) {
-                        // 1st person - translate both camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.at, 5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
-
-                        // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, -5));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(0, 0, -5));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.at, 5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, -5));
+                            // translate player
+                            this.player.translate(vec3.fromValues(0, 0, -5));
+                        }
                     }
                     break;
 
@@ -197,14 +233,14 @@ class Game {
                         otherObject.collider.shouldMove[1] = false;
                     }
                     if (this.player.collider.shouldMove[1]) {
-                        // 1st person - translate both camera center and position
+                        // 1st person - translate both this.camera center and position
                         // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.at, -5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                        // vec3.scale(move, this.camera.at, -5);
+                        // vec3.add(this.camera.front, this.camera.front, move);
+                        // vec3.add(this.camera.position, this.camera.position, move);
 
                         // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, 5));
+                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, 5));
 
                         // translate player
                         this.player.translate(vec3.fromValues(0, 0, 5));
@@ -216,14 +252,14 @@ class Game {
                         otherObject.collider.shouldMove[2] = false;
                     }
                     if (this.player.collider.shouldMove[2]) {
-                        // 1st person - translate both camera center and position
+                        // 1st person - translate both this.camera center and position
                         // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.right, 0.5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                        // vec3.scale(move, this.camera.right, 0.5);
+                        // vec3.add(this.camera.front, this.camera.front, move);
+                        // vec3.add(this.camera.position, this.camera.position, move);
                         
                         // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(5, 0, 0));
+                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(5, 0, 0));
 
                         // translate player
                         this.player.translate(vec3.fromValues(5, 0, 0));
@@ -235,14 +271,14 @@ class Game {
                         otherObject.collider.shouldMove[3] = false;
                     }
                     if (this.player.collider.shouldMove[3]) {
-                        // 1st person - translate both camera center and position
+                        // 1st person - translate both this.camera center and position
                         // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.right, -0.5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
+                        // vec3.scale(move, this.camera.right, -0.5);
+                        // vec3.add(this.camera.front, this.camera.front, move);
+                        // vec3.add(this.camera.position, this.camera.position, move);
                         
                         // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(-5, 0, 0));
+                        vec3.add(this.camera.position, this.camera.position, vec3.fromValues(-5, 0, 0));
 
                         // translate player
                         this.player.translate(vec3.fromValues(-5, 0, 0));
