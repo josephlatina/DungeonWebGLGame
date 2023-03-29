@@ -332,6 +332,9 @@ function startRendering(gl, state, initialView) {
         const deltaTime = now - then;
         then = now;
 
+        let element = document.querySelector('#coinCount');
+        element.innerHTML = state.coins;
+
         state.deltaTime = deltaTime;
         drawScene(gl, deltaTime, state);
         game.onUpdate(deltaTime); //constantly call our game loop

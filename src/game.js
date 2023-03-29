@@ -379,7 +379,6 @@ class Game {
                 }
             }
             this.state.gameOver = true;
-            console.log("hello");
         }
         // example: Rotate a single object we defined in our start method
         // this.cube.rotate('x', deltaTime * 0.5);
