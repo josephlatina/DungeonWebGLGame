@@ -1,0 +1,15 @@
+newmtl Standard_1
+	Ns 26.000000
+	Ni 1.500000
+	d 1.000000
+	Tr 1.000000
+	Tf 1.000000 1.000000 1.000000 
+	illum 2
+	Ka 0.000000 0.000000 0.000000
+	Kd 0.588000 0.588000 0.588000
+	Ks 0.207000 0.207000 0.207000
+	Ke 0.000000 0.000000 0.000000
+	map_Ka G:\3DArt\3DAssetForge\Assets\_Monsters\Skeleton3\Skeleton3_Textures\DiffMap.png
+	map_Kd G:\3DArt\3DAssetForge\Assets\_Monsters\Skeleton3\Skeleton3_Textures\DiffMap.png
+	map_Ks G:\3DArt\3DAssetForge\Assets\_Monsters\Skeleton3\Skeleton3_Textures\SpecMap.png
+	map_Bump G:\3DArt\3DAssetForge\Assets\_Monsters\Skeleton3\Skeleton3_Textures\NormMap.png
