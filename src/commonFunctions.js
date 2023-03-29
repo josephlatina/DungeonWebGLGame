@@ -464,6 +464,7 @@ function parseSceneFile(file, state) {
             .then((jData) => {
                 state.loadObjects = jData[0].objects;
                 state.pointLights = jData[0].pointLights;
+                state.dirLights = jData[0].dirLights;
                 state.settings = jData[0].settings;
                 state.camera = state.settings.camera;
                 state.mode = state.settings.mode;

@@ -101,16 +101,23 @@ async function main() {
         float quadratic;
     };
 
+    // struct for defining direction light
+    struct DirLight {
+        vec3 position;
+        vec3 colour;
+        vec3 direction;
+    };
+
     // initialize numLights and pointLights array uniforms
-    //uniform int numLights;
-    uniform PointLight[2] pointLights;
+    uniform int numLights;
+    uniform int numDirLights;
+    uniform PointLight[MAX_LIGHTS] pointLights;
+    uniform DirLight[MAX_LIGHTS] dirLights;
 
     in vec2 oUV;
     in vec3 oNormal;
     in vec3 oFragPosition;
     in vec3 oCameraPosition;
-
-    uniform PointLight mainLight;
 
     // material properties
     uniform vec3 diffuseVal; //Kd
@@ -124,8 +131,8 @@ async function main() {
 
     out vec4 fragColor;
 
-    // function for calculating colour using Blinn_Phong lighting
-    vec3 calculateColours(PointLight point, vec3 ambientVal, vec3 diffuseVal, vec3 specularVal, vec3 normal, vec3 fragPosition, vec3 viewVector, float nVal) {
+    // function for calculating point lights
+    vec3 calculatePointLights(PointLight point, vec3 ambientVal, vec3 diffuseVal, vec3 specularVal, vec3 normal, vec3 fragPosition, vec3 viewVector, float nVal) {
         
         vec4 textureColor = vec4(1.0, 1.0, 1.0, 1.0);
         if (samplerExists == 1) {
@@ -135,31 +142,57 @@ async function main() {
         float attenuation = point.strength / (point.constant + point.linear * distance + point.quadratic * (distance * distance));
 
         // Calculate ambient term Ka*Lc*Ls
-        //vec3 ambient = ambientVal * point.colour * vec3(attenuation, attenuation, attenuation);
+        // vec3 ambient = ambientVal * textureColor.xyz * diffuseVal * 0.3;
         vec3 ambient = ambientVal * textureColor.xyz * diffuseVal * attenuation;
 
         // Calculate diffuse term Kd*Lc*dot(N,L)
         // get direction of light relative to the object
         vec3 lightDirection = normalize(point.position - fragPosition);
         float diff = max(dot(lightDirection, normal), 0.0);
-        vec3 diffuse = diff * diffuseVal * point.colour * vec3(attenuation, attenuation, attenuation);
-        //vec3 diffuse = diff * diffuseVal * point.colour * textureColor.xyz * attenuation;
+        vec3 diffuse = diff * diffuseVal * point.colour;
 
         // check if sampler exists, if so, then mix with diffuse
         if (samplerExists == 1) {
             diffuse = mix(diffuse, textureColor.rgb, 0.5);
         }
-        //diffuse *= attenuation;
+        diffuse *= attenuation;
 
         // Calculate specular term Ks*Lc*dot(H,N)^(n*n_all)
         // calculate half vector first
         vec3 halfVector = normalize(viewVector + lightDirection);
-        vec3 reflectDirection = reflect(lightDirection, normal);
         float spec = pow(max(dot(normal, halfVector), 0.0), nVal);
-        //float spec = pow(max(dot(viewVector, reflectDirection), 1.0), nVal);
-        vec3 specular = spec * specularVal * point.colour;
+        vec3 specular = spec * specularVal * point.colour * attenuation;
 
         // Calculate total 
+        vec3 total = (ambient + diffuse + specular);
+        return total;
+    }
+
+    // function for calculating directional lights
+    vec3 calculateDirLights(DirLight point, vec3 ambientVal, vec3 diffuseVal, vec3 specularVal, vec3 normal, vec3 viewVector, float nVal) {
+        
+        vec4 textureColor = vec4(1.0, 1.0, 1.0, 1.0);
+        if (samplerExists == 1) {
+            textureColor = texture(uTexture, oUV);
+        }
+
+        // calculate ambient
+        vec3 ambient = point.colour * ambientVal * diffuseVal * textureColor.xyz;
+        
+        // calculate diffuse
+        vec3 lightDirection = normalize(point.direction);
+        float diff = max(dot(lightDirection, normal), 1.0);
+        vec3 diffuse = diff * diffuseVal * point.colour;
+        if (samplerExists == 1) {
+            diffuse = mix(diffuse, textureColor.rgb, 0.5);
+        }
+
+        // calculate specular
+        vec3 reflectDirection = reflect(lightDirection, normal);
+        float spec = pow(max(dot(viewVector, reflectDirection), 0.0), nVal);
+        vec3 specular = spec * specularVal * point.colour * textureColor.xyz;
+
+        // Calculate total
         vec3 total = ambient + diffuse + specular;
         return total;
     }
@@ -174,21 +207,17 @@ async function main() {
 
         // pass in pointLights in loop to calculate total colour
         vec3 total = vec3(0.0, 0.0, 0.0);
-        for (int i = 0; i < 1; i++) {
-            // calculate colour
-            total += calculateColours(mainLight, ambientVal, diffuseVal, specularVal, normal, oFragPosition, viewVector, nVal);
-            
+        // calculate point lights
+        for (int i = 0; i < numLights; i++) {
+            total += calculatePointLights(pointLights[i], ambientVal, diffuseVal, specularVal, normal, oFragPosition, viewVector, nVal);
+        }
+        // calculate direction lights
+        for (int j = 0; j < numDirLights; j++) {
+            total += calculateDirLights(dirLights[j], ambientVal, diffuseVal, specularVal, normal, viewVector, nVal);
         }
 
         // return fragment color
         fragColor = vec4(total, alpha);
-        
-        // if (samplerExists == 1) {
-        //     vec3 textureColour = texture(uTexture, oUV).rgb;
-        //     fragColor = vec4(diffuseVal * textureColour, 1.0);
-        // } else {
-        //     fragColor = vec4(diffuseVal, 1.0);
-        // }
     }
     `;
 
@@ -215,6 +244,7 @@ async function main() {
     };
 
     state.numLights = state.pointLights.length;
+    state.numDirLights = state.dirLights.length;
 
     const now = new Date();
     for (let i = 0; i < state.loadObjects.length; i++) {
@@ -397,25 +427,33 @@ function drawScene(gl, deltaTime, state) {
             gl.uniform1f(object.programInfo.uniformLocations.nVal, object.material.n);
             gl.uniform1f(object.programInfo.uniformLocations.alpha, object.material.alpha);
 
-            let mainLight = state.pointLights[2];
+            //let mainLight = state.pointLights[2];
 
             // Light Properties
-            //gl.uniform1i(object.programInfo.uniformLocations.numLights, state.numLights);
-            // if (state.pointLights.length > 0) {
-            //     for (let i = 0; i < state.pointLights.length; i++) {
-            //         gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].position'), state.pointLights[i].position);
-            //         gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].colour'), state.pointLights[i].colour);
-            //         gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].strength'), state.pointLights[i].strength);
-            //         gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].linear'), state.pointLights[i].linear);
-            //         gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].quadratic'), state.pointLights[i].quadratic);
-            //     }
-            // }
-            gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'mainLight.position'), mainLight.position);
-            gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'mainLight.colour'), mainLight.colour);
-            gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.strength'), mainLight.strength);
-            gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.constant'), mainLight.constant);
-            gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.linear'), mainLight.linear);
-            gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.quadratic'), mainLight.quadratic);
+            gl.uniform1i(object.programInfo.uniformLocations.numLights, state.numLights);
+            if (state.pointLights.length > 0) {
+                for (let i = 0; i < state.pointLights.length; i++) {
+                    gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].position'), state.pointLights[i].position);
+                    gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].colour'), state.pointLights[i].colour);
+                    gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].strength'), state.pointLights[i].strength);
+                    gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].linear'), state.pointLights[i].linear);
+                    gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'pointLights[' + i + '].quadratic'), state.pointLights[i].quadratic);
+                }
+            }
+            gl.uniform1i(object.programInfo.uniformLocations.numDirLights, state.numDirLights);
+            if (state.numDirLights.length > 0) {
+                for (let i = 0; i < state.numDirLights.length; i++) {
+                    gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'dirLights[' + i + '].position'), state.dirLights[i].position);
+                    gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'dirLights[' + i + '].colour'), state.dirLights[i].colour);
+                    gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'dirLights[' + i + '].direction'), state.dirLights[i].direction);
+                }
+            }
+            // gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'mainLight.position'), mainLight.position);
+            // gl.uniform3fv(gl.getUniformLocation(object.programInfo.program, 'mainLight.colour'), mainLight.colour);
+            // gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.strength'), mainLight.strength);
+            // gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.constant'), mainLight.constant);
+            // gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.linear'), mainLight.linear);
+            // gl.uniform1f(gl.getUniformLocation(object.programInfo.program, 'mainLight.quadratic'), mainLight.quadratic);
 
 
             {
