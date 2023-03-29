@@ -161,6 +161,7 @@ class Game {
                     for (let i=0; i < 4; i++) {
                         otherObject.collider.shouldMove[i] = false;
                     }
+                    otherObject.collider.hit = true;
                 })
             }
         }
@@ -370,7 +371,7 @@ class Game {
 
         // check for game clear conditions
         // position = (-315, -90, -160)
-        if (this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) {
+        if ((this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) || this.player.collider.hit == true) {
             let element = document.querySelector('#gameOver');
             if (element) {
                 let hidden = element.getAttribute("hidden");
