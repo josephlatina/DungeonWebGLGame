@@ -329,7 +329,8 @@ function startRendering(gl, state, initialView) {
     // This function is called when we want to render a frame to the canvas
     function render(now) {
         // Prompt this at start of game
-        if (then == 0.0) {
+        if (then == 0.0 && state.gameStart == false) {
+            pauseGame();
             document.addEventListener("keydown", (event) => {
                 event.preventDefault();
                 switch (event.code) {
@@ -340,6 +341,9 @@ function startRendering(gl, state, initialView) {
                         }
                         // start game
                         state.gameStart = true;
+                        for (let i=0; i < 4; i++) {
+                            player.collider.shouldMove[i] = true;
+                        }
                         break;
                     default:
                         break;
@@ -361,7 +365,6 @@ function startRendering(gl, state, initialView) {
          if (state.gameOver == true) {
             state.reset = 1;
             pauseGame();
-            console.log("hello1");
             document.addEventListener("keydown", (event) => {
                 event.preventDefault();
                 switch (event.code) {
