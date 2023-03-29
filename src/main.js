@@ -237,7 +237,7 @@ async function main() {
         meshCache: {},
         samplerExists: 0,
         samplerNormExists: 0,
-        gameStart: true,
+        gameStart: false,
         gameOver: false,
         reset: 0,
         coins: 0,
@@ -328,6 +328,24 @@ function startRendering(gl, state, initialView) {
 
     // This function is called when we want to render a frame to the canvas
     function render(now) {
+        // Prompt this at start of game
+        if (then == 0.0) {
+            document.addEventListener("keydown", (event) => {
+                event.preventDefault();
+                switch (event.code) {
+                    case ("Space"):
+                        let element = document.querySelector('#gameStart');
+                        if (element) {
+                            element.remove();
+                        }
+                        // start game
+                        state.gameStart = true;
+                        break;
+                    default:
+                        break;
+                }                
+            })
+        }
         now *= 0.001; // convert to seconds
         const deltaTime = now - then;
         then = now;
