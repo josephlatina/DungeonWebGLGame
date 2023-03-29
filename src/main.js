@@ -295,7 +295,6 @@ function startRendering(gl, state, initialView) {
     const player = getObject(state, "player");
 
     function resetGame() {
-        console.log(state);
         state.objects.forEach(object => {
             if (object.collider) {
                 object.collider.hit = false;
@@ -307,6 +306,7 @@ function startRendering(gl, state, initialView) {
         state.settings.camera = JSON.parse(JSON.stringify(initialView));
         state.camera = state.settings.camera;
         state.reset = 0;
+        state.coins = 0;
         state.gameOver = false;
         state.gameStart = true;
         let element = document.querySelector('#gameOver');
