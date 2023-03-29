@@ -268,7 +268,8 @@ async function main() {
     game = new Game(state);
     await game.onStart();
     loadingPage.remove();
-    startRendering(gl, state); // now that scene is setup, start rendering it
+    const initialView = JSON.parse(JSON.stringify(state.settings.camera)); //save initial camera position and views
+    startRendering(gl, state, initialView); // now that scene is setup, start rendering it
 }
 
 /**
@@ -288,9 +289,42 @@ function addObjectToScene(state, object) {
  * @param {object - object containing scene values} state 
  * @purpose - Calls the drawscene per frame
  */
-function startRendering(gl, state) {
+function startRendering(gl, state, initialView) {
     // A variable for keeping track of time between frames
     var then = 0.0;
+    const player = getObject(state, "player");
+
+    function resetGame() {
+        console.log(state);
+        state.objects.forEach(object => {
+            if (object.collider) {
+                object.collider.hit = false;
+            }
+            object.model.scale = JSON.parse(JSON.stringify(object.initialTransform.scale));
+            object.model.rotation = JSON.parse(JSON.stringify(object.initialTransform.rotation));
+            object.model.position = JSON.parse(JSON.stringify(object.initialTransform.position));
+        })
+        state.settings.camera = JSON.parse(JSON.stringify(initialView));
+        state.camera = state.settings.camera;
+        state.reset = 0;
+        state.gameOver = false;
+        state.gameStart = true;
+        let element = document.querySelector('#gameOver');
+        if (element) {
+            let hidden = element.getAttribute("hidden");
+            if (!hidden) {
+                element.setAttribute("hidden", "hidden");
+            }
+        }
+    }
+
+    function pauseGame() {
+        state.gameStart = false;
+        // make player unable to move
+        for (let i=0; i < 4; i++) {
+            player.collider.shouldMove[i] = false;
+        }
+    }
 
     // This function is called when we want to render a frame to the canvas
     function render(now) {
@@ -301,6 +335,24 @@ function startRendering(gl, state) {
         state.deltaTime = deltaTime;
         drawScene(gl, deltaTime, state);
         game.onUpdate(deltaTime); //constantly call our game loop
+
+         // if game conditions are met and it's game over
+         if (state.gameOver == true) {
+            state.reset = 1;
+            pauseGame();
+            console.log("hello1");
+            document.addEventListener("keydown", (event) => {
+                event.preventDefault();
+                switch (event.code) {
+                    case ("Space"):
+                        //if player wants to restart game, reset objects
+                        resetGame();
+                        break;
+                    default:
+                        break;
+                }                
+            })
+        }
 
         // Request another frame when this one is done
         requestAnimationFrame(render);

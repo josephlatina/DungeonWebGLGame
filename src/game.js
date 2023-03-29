@@ -3,7 +3,7 @@ class Game {
         this.state = state;
         this.spawnedObjects = [];
         this.collidableObjects = [];
-        this.camera = this.state.mode == 0 ? this.state.camera[0] : this.state.camera[1];
+        this.camera = this.state.mode == 0 ? this.state.settings.camera[0] : this.state.settings.camera[1];
     }
 
     // example - we can add our own custom method to our game and call it using 'this.customMethod()'
@@ -24,6 +24,23 @@ class Game {
         };
         this.collidableObjects.push(object);
     }
+
+    createCoinSphereCollider(object, radius, onCollide = null) {
+        object.collider = {
+            type: "SPHERE",
+            radius: radius,
+            shouldMove: [true, true, true, true],
+            hit: false,
+            onCollide: onCollide ? onCollide : (otherObject) => {
+                this.state.coins += 1;
+                object.collider.hit = true;
+                for (let i=0; i < 4; i++) {
+                    this.player.collider.shouldMove[i] = true;
+                }            }
+        };
+        this.collidableObjects.push(object);
+    }
+
 
     createBoxCollider(object, onCollide = null) {
         object.collider = {
@@ -128,15 +145,16 @@ class Game {
         // create sphere collider on coins
         for (let i = 0; i < state.objects.length; i++) {
             if (state.objects[i].name.includes("Coin")) {
-                this.state.objects[i].model.scale = [3, 3, 3];
-                this.state.objects[i].model.position[1] = 3;
-                this.createSphereCollider(state.objects[i], 3, (otherObject) => {
-                    this.state.coins += 1;
-                    this.state.objects[i].collider.hit = true;
-                    for (let i=0; i < 4; i++) {
-                        this.player.collider.shouldMove[i] = true;
-                    }
-                })
+                state.objects[i].model.scale = [3, 3, 3];
+                state.objects[i].model.position[1] = 3;
+                // this.createSphereCollider(state.objects[i], 5, (otherObject) => {
+                //     this.state.coins += 1;
+                //     state.objects[i].collider.hit = true;
+                //     for (let i=0; i < 4; i++) {
+                //         this.player.collider.shouldMove[i] = true;
+                //     }
+                // })
+                this.createCoinSphereCollider(state.objects[i], 5);
             }
         }
         // create sphere collider on enemies
@@ -223,7 +241,7 @@ class Game {
                             this.player.translate(move);
                         } else {
                             // overhead view - translate position
-                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, -5));
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(0, 0, -5));
                             // translate player
                             this.player.translate(vec3.fromValues(0, 0, -5));
                         }
@@ -246,7 +264,7 @@ class Game {
                             this.player.translate(move);
                         } else {
                             // overhead view - translate position
-                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(0, 0, 5));
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(0, 0, 5));
                             // translate player
                             this.player.translate(vec3.fromValues(0, 0, 5));
                         }
@@ -269,7 +287,7 @@ class Game {
                             this.player.translate(move);
                         } else {
                             // overhead view - translate position
-                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(5, 0, 0));
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(5, 0, 0));
                             // translate player
                             this.player.translate(vec3.fromValues(5, 0, 0));
                         }
@@ -292,7 +310,7 @@ class Game {
                             this.player.translate(move);
                         } else {
                             // overhead view - translate position
-                            vec3.add(this.camera.position, this.camera.position, vec3.fromValues(-5, 0, 0));
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(-5, 0, 0));
                             // translate player
                             this.player.translate(vec3.fromValues(-5, 0, 0));
                         }
@@ -350,6 +368,26 @@ class Game {
     onUpdate(deltaTime) {
         // TODO - Here we can add game logic, like moving game objects, detecting collisions, you name it. Examples of functions can be found in sceneFunctions
 
+        if (this.state.gameStart) {
+            this.checkCollision(this.player);
+        }
+
+
+        // check for game clear conditions
+        // position = (-315, -90, -160)
+        console.log(this.player.model.position[2]);
+        console.log(this.state.coins);
+        if (this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) {
+            let element = document.querySelector('#gameOver');
+            if (element) {
+                let hidden = element.getAttribute("hidden");
+                if (hidden) {
+                    element.removeAttribute("hidden");
+                }
+            }
+            this.state.gameOver = true;
+            console.log("hello");
+        }
         // example: Rotate a single object we defined in our start method
         // this.cube.rotate('x', deltaTime * 0.5);
 
@@ -371,7 +409,5 @@ class Game {
         // });
 
 
-        // example - call our collision check method on our cube
-        this.checkCollision(this.player);
     }
 }
