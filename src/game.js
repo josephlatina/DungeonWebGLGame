@@ -3,6 +3,7 @@ class Game {
         this.state = state;
         this.spawnedObjects = [];
         this.collidableObjects = [];
+        this.camera = this.state.mode == 0 ? this.state.settings.camera[0] : this.state.settings.camera[1];
     }
 
     // example - we can add our own custom method to our game and call it using 'this.customMethod()'
@@ -23,6 +24,23 @@ class Game {
         };
         this.collidableObjects.push(object);
     }
+
+    createCoinSphereCollider(object, radius, onCollide = null) {
+        object.collider = {
+            type: "SPHERE",
+            radius: radius,
+            shouldMove: [true, true, true, true],
+            hit: false,
+            onCollide: onCollide ? onCollide : (otherObject) => {
+                this.state.coins += 1;
+                object.collider.hit = true;
+                for (let i=0; i < 4; i++) {
+                    this.player.collider.shouldMove[i] = true;
+                }            }
+        };
+        this.collidableObjects.push(object);
+    }
+
 
     createBoxCollider(object, onCollide = null) {
         object.collider = {
@@ -116,31 +134,42 @@ class Game {
 
         // example - set an object in onStart before starting our render loop!
         this.player = getObject(this.state, "player");
-        const coin = getObject(this.state, "Coin-7"); // we wont save this as instance var since we dont plan on using it in update
-        const enemy = getObject(this.state, "Enemy-3");
         const crate = getObject(this.state, "Crate-1");
 
         // example - create sphere colliders on our two objects as an example, we give 2 objects colliders otherwise
         // no collision can happen
         // create sphere collider on main player
         this.createSphereCollider(this.player, 5, (otherObject) => {
-            // console.log(`This is a custom collision of ${otherObject.name}`)
+            console.log(`This is a custom collision of ${otherObject.name}`)
         });
         // create sphere collider on coins
-        this.createSphereCollider(coin, 3, (otherObject) => {
-            this.state.coins += 1;
-            coin.collider.hit = true;
-            for (let i=0; i < 4; i++) {
-                this.player.collider.shouldMove[i] = true;
+        for (let i = 0; i < state.objects.length; i++) {
+            if (state.objects[i].name.includes("Coin")) {
+                state.objects[i].model.scale = [3, 3, 3];
+                state.objects[i].model.position[1] = 3;
+                // this.createSphereCollider(state.objects[i], 5, (otherObject) => {
+                //     this.state.coins += 1;
+                //     state.objects[i].collider.hit = true;
+                //     for (let i=0; i < 4; i++) {
+                //         this.player.collider.shouldMove[i] = true;
+                //     }
+                // })
+                this.createCoinSphereCollider(state.objects[i], 5);
             }
-        })
+        }
         // create sphere collider on enemies
-        this.createSphereCollider(enemy, 10, (otherObject) => {
-            // console.log(`This is a custom collision of ${otherObject.name}`);
-            for (let i=0; i < 4; i++) {
-                otherObject.collider.shouldMove[i] = false;
+        for (let i = 0; i < state.objects.length; i++) {
+            if (state.objects[i].name.includes("Enemy")) {
+                this.state.objects[i].model.scale = [15, 15, 15];
+                this.state.objects[i].model.position[1] = 10;
+                this.createSphereCollider(state.objects[i], 10, (otherObject) => {
+                    for (let i=0; i < 4; i++) {
+                        otherObject.collider.shouldMove[i] = false;
+                    }
+                })
             }
-        });
+        }
+        // create sphere collider on other objects
         this.createSphereCollider(crate, 6, (otherObject) => {
             console.log(`This is a custom collision of ${otherObject.name}`)
         });
@@ -149,103 +178,142 @@ class Game {
             e.preventDefault();
 
             switch (e.code) {
+                case "KeyZ":
+                    // if in overhead view,
+                    if (this.state.mode == 0) {
+                        this.state.mode = 1; // change camera mode to player view
+                        this.camera = this.state.camera[1]; // configure camera settings accordingly
+                        // change the camera's position such that it's aligned with player's current position
+                        const position = JSON.parse(JSON.stringify(this.player.model.position));
+                        this.camera.position = [position[0], 25, position[2]];
+                    }
+                    // if in first person view,
+                    else if (this.state.mode == 1) {
+                        // switch this.camera mode
+                        this.state.mode = 0;
+                        this.camera = this.state.camera[0];
+                        // change camera's position accordingly
+                        const position = JSON.parse(JSON.stringify(this.player.model.position));
+                        this.camera.position = [position[0], 80, position[2]];
+                    }
+                    break;
                 case "KeyA":
-                    //this.cube.translate(vec3.fromValues(0.5, 0, 0));
-                    // Rotate camera around Y
-                    var correctDelta = vec3.create();
-                    vec3.scale(correctDelta, this.state.camera.right, -5); // correctDelta = e . right 
-                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
-                    // update at, right
-                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
-                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
-                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
+                    if (this.state.mode == 1) {
+                        //this.cube.translate(vec3.fromValues(0.5, 0, 0));
+                        // Rotate this.camera around Y
+                        var correctDelta = vec3.create();
+                        vec3.scale(correctDelta, this.camera.right, -5); // correctDelta = e . right 
+                        vec3.add(this.camera.front, this.camera.front, correctDelta); // front + correctDelta
+                        // update at, right
+                        vec3.sub(this.camera.at, this.camera.front, this.camera.position); // at = front - position
+                        vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                        vec3.cross(this.camera.right, this.camera.at, this.camera.up); // right = at x up
+                    }
                     break;
 
                 case "KeyD":
-                    //this.cube.translate(vec3.fromValues(-0.5, 0, 0));
-                    // Rotate camera around Y
-                    var correctDelta = vec3.create();
-                    vec3.scale(correctDelta, this.state.camera.right, 5); // correctDelta = e . right 
-                    vec3.add(this.state.camera.front, this.state.camera.front, correctDelta); // front + correctDelta
-                    // update at, right
-                    vec3.sub(this.state.camera.at, this.state.camera.front, this.state.camera.position); // at = front - position
-                    vec3.normalize(this.state.camera.at, this.state.camera.at); // normalize at
-                    vec3.cross(this.state.camera.right, this.state.camera.at, this.state.camera.up); // right = at x up
+                    if (this.state.mode == 1) {
+                        //this.cube.translate(vec3.fromValues(-0.5, 0, 0));
+                        // Rotate this.camera around Y
+                        var correctDelta = vec3.create();
+                        vec3.scale(correctDelta, this.camera.right, 5); // correctDelta = e . right 
+                        vec3.add(this.camera.front, this.camera.front, correctDelta); // front + correctDelta
+                        // update at, right
+                        vec3.sub(this.camera.at, this.camera.front, this.camera.position); // at = front - position
+                        vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                        vec3.cross(this.camera.right, this.camera.at, this.camera.up); // right = at x up
+                    }
                     break;
 
                 case "ArrowUp":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[0] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[0] = false;
                     }
                     if (this.player.collider.shouldMove[0]) {
-                        // 1st person - translate both camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.at, 5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
-
-                        // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, -5));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(0, 0, -5));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.at, 5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(0, 0, -5));
+                            // translate player
+                            this.player.translate(vec3.fromValues(0, 0, -5));
+                        }
                     }
                     break;
 
                 case "ArrowDown":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[1] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[1] = false;
                     }
                     if (this.player.collider.shouldMove[1]) {
-                        // 1st person - translate both camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.at, -5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
-
-                        // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(0, 0, 5));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(0, 0, 5));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.at, -5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(0, 0, 5));
+                            // translate player
+                            this.player.translate(vec3.fromValues(0, 0, 5));
+                        }
                     }
                     break;
 
                 case "ArrowRight":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[2] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[2] = false;
                     }
                     if (this.player.collider.shouldMove[2]) {
-                        // 1st person - translate both camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.right, 0.5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
-                        
-                        // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(5, 0, 0));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(5, 0, 0));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.right, 0.5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(5, 0, 0));
+                            // translate player
+                            this.player.translate(vec3.fromValues(5, 0, 0));
+                        }
                     }
                     break;
 
                 case "ArrowLeft":
-                    crate.collider.onCollide = (otherObject) => {
-                        otherObject.collider.shouldMove[3] = false;
+                    this.player.collider.onCollide = (otherObject) => {
+                        this.player.collider.shouldMove[3] = false;
                     }
                     if (this.player.collider.shouldMove[3]) {
-                        // 1st person - translate both camera center and position
-                        // var move = vec3.create();
-                        // vec3.scale(move, this.state.camera.right, -0.5);
-                        // vec3.add(this.state.camera.front, this.state.camera.front, move);
-                        // vec3.add(this.state.camera.position, this.state.camera.position, move);
-                        
-                        // overhead view - translate position
-                        vec3.add(this.state.camera.position, this.state.camera.position, vec3.fromValues(-5, 0, 0));
-
-                        // translate player
-                        this.player.translate(vec3.fromValues(-5, 0, 0));
+                        if (this.state.mode == 1) {
+                            // 1st person - translate both this.camera center and position
+                            var move = vec3.create();
+                            vec3.sub(this.camera.at, this.camera.front, this.camera.position);
+                            vec3.normalize(this.camera.at, this.camera.at); // normalize at
+                            vec3.scale(move, this.camera.right, -0.5);
+                            vec3.add(this.camera.front, this.camera.front, move);
+                            vec3.add(this.camera.position, this.camera.position, move);
+                            this.player.translate(move);
+                        } else {
+                            // overhead view - translate position
+                            vec3.add(this.state.camera[0].position, this.state.camera[0].position, vec3.fromValues(-5, 0, 0));
+                            // translate player
+                            this.player.translate(vec3.fromValues(-5, 0, 0));
+                        }
                     }
                     break;
 
@@ -300,6 +368,26 @@ class Game {
     onUpdate(deltaTime) {
         // TODO - Here we can add game logic, like moving game objects, detecting collisions, you name it. Examples of functions can be found in sceneFunctions
 
+        if (this.state.gameStart) {
+            this.checkCollision(this.player);
+        }
+
+
+        // check for game clear conditions
+        // position = (-315, -90, -160)
+        console.log(this.player.model.position[2]);
+        console.log(this.state.coins);
+        if (this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) {
+            let element = document.querySelector('#gameOver');
+            if (element) {
+                let hidden = element.getAttribute("hidden");
+                if (hidden) {
+                    element.removeAttribute("hidden");
+                }
+            }
+            this.state.gameOver = true;
+            console.log("hello");
+        }
         // example: Rotate a single object we defined in our start method
         // this.cube.rotate('x', deltaTime * 0.5);
 
@@ -321,7 +409,5 @@ class Game {
         // });
 
 
-        // example - call our collision check method on our cube
-        this.checkCollision(this.player);
     }
 }
