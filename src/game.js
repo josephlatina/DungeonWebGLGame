@@ -32,7 +32,9 @@ class Game {
             shouldMove: [true, true, true, true],
             hit: false,
             onCollide: onCollide ? onCollide : (otherObject) => {
-                this.state.coins += 1;
+                if (object.collider.hit == false) {
+                    this.state.coins += 1;
+                }
                 object.collider.hit = true;
                 for (let i=0; i < 4; i++) {
                     this.player.collider.shouldMove[i] = true;
@@ -147,13 +149,6 @@ class Game {
             if (state.objects[i].name.includes("Coin")) {
                 state.objects[i].model.scale = [3, 3, 3];
                 state.objects[i].model.position[1] = 3;
-                // this.createSphereCollider(state.objects[i], 5, (otherObject) => {
-                //     this.state.coins += 1;
-                //     state.objects[i].collider.hit = true;
-                //     for (let i=0; i < 4; i++) {
-                //         this.player.collider.shouldMove[i] = true;
-                //     }
-                // })
                 this.createCoinSphereCollider(state.objects[i], 5);
             }
         }
@@ -375,8 +370,6 @@ class Game {
 
         // check for game clear conditions
         // position = (-315, -90, -160)
-        console.log(this.player.model.position[2]);
-        console.log(this.state.coins);
         if (this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) {
             let element = document.querySelector('#gameOver');
             if (element) {
