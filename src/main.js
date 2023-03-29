@@ -268,6 +268,21 @@ async function main() {
     game = new Game(state);
     await game.onStart();
     loadingPage.remove();
+    let element1 = document.querySelector('#coinProgress');
+    console.log(element1);
+    if (element1) {
+        let hidden1 = element1.getAttribute("hidden");
+        if (hidden1) {
+            element1.removeAttribute("hidden");
+        }
+    }
+    let element2 = document.querySelector('#gameStart');
+    if (element2) {
+        let hidden2 = element2.getAttribute("hidden");
+        if (hidden2) {
+            element2.removeAttribute("hidden");
+        }
+    }
     const initialView = JSON.parse(JSON.stringify(state.settings.camera)); //save initial camera position and views
     startRendering(gl, state, initialView); // now that scene is setup, start rendering it
 }
@@ -567,7 +582,7 @@ function drawScene(gl, deltaTime, state) {
                 const offset = 0; // Number of elements to skip before starting
 
                 //if its a mesh then we don't use an index buffer and use drawArrays instead of drawElements
-                if (((object.type === "mesh" || object.type === "meshCustom") && object.collider?.hit == false) || object.name.includes("player")) {
+                if (((object.type === "mesh" || object.type === "meshCustom") && (object.collider ? object.collider.hit == false : true)) || object.name.includes("player")) {
                     gl.drawArrays(gl.TRIANGLES, offset, object.buffers.numVertices / 3);
                 } else {
                     gl.drawElements(gl.TRIANGLES, object.buffers.numVertices, gl.UNSIGNED_SHORT, offset);

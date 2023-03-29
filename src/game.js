@@ -292,6 +292,7 @@ class Game {
 
                 case "ArrowLeft":
                     this.player.collider.onCollide = (otherObject) => {
+                        console.log(otherObject.name);
                         this.player.collider.shouldMove[3] = false;
                     }
                     if (this.player.collider.shouldMove[3]) {
@@ -371,7 +372,7 @@ class Game {
 
         // check for game clear conditions
         // position = (-315, -90, -160)
-        if ((this.player.model.position[2] < -160 && this.state.reset == 0 && this.state.coins > 0) || this.player.collider.hit == true) {
+        if ((this.player.model.position[0] > -190 && this.state.reset == 0 && this.state.coins == 10) || this.player.collider.hit == true) {
             let element = document.querySelector('#gameOver');
             if (element) {
                 let hidden = element.getAttribute("hidden");
