@@ -5,9 +5,12 @@
     <meta charset="utf-8">
     <title>WebGL Engine</title>
     <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gluten&display=swap" rel="stylesheet">
 </head>
 
-<body style="width: 100%; height: 100%; margin: 0; padding: 0">
+<body style="width: 100%; height: 100%; margin: 0; padding: 0; font-family: 'Gluten', cursive;">
     <!-- This is the navigation bar at the top of the page -->
     <!-- This is populated by loading the common functions script -->
     <div id="myNavBar"></div>
@@ -28,23 +31,61 @@
     </div>
 
     <!-- Coins Progress -->
-    <!-- <div hidden="hidden" id="gameOver" style="
+    <div hidden="hidden" id="coinProgress" style="
     width: 100%;
     position: absolute;
     margin-top: 50px;
-    background-color: black;">
-        <h1 style="color: white; text-align: center;">Game Over!</h1>
-        <h5 style="color: white; text-align: center">Press the space bar to start again</h5>
-    </div> -->
+    background-color: transparent;
+    display: flex;">
+        <img width="150" height="150" src="/materials/coin-count.png" style="margin-left: 50px;"/>
+        <h1 style="color: white; text-align: left; margin-left: 10px; font-size: 60px;">x</h1>
+        <h1 id="coinCount" style="color: white; text-align: left; margin-left: 30px; font-size: 60px;">0</h1>
+    </div>
+
+    <!-- Game Start -->
+    <div hidden="hidden" id="gameStart" style="
+    width: 100%;
+    height: 100%;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    position: absolute;
+    margin-top: 50px;
+    margin: 0 auto;
+    background-color: transparent;">
+        <div style="width: 100%;
+        position: relative;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        padding-top: 50px;
+        padding-bottom: 50px;">
+            <img width="auto" height="80%" src="/materials/game-prompt.png" style="display: block; margin-left: auto; margin-right: auto;"/>
+            <h1 style="color: #444444; position: absolute; text-align: center; top: 25%; width: 100%; height: 100%;">Welcome Traveler!</h1>
+            <h2 style="color: #444444; position: absolute; text-align: center; top: 35%; width: 28%; height: 100%;"">To clear the game, you must collect 10 coins and avoid enemies as you head to the exit.</h5>
+                <h2 style="color: #444444; position: absolute; text-align: center; top: 45%; width: 28%; height: 100%;"">Arrow keys moves the player while A and D rotates camera.</h5>
+            <h2 style="color: #444444; position: absolute; text-align: center; top: 55%; width: 50%; height: 100%;"">Press the space bar to continue</h5>
+        </div>
+    </div>
 
     <!-- Game Over -->
     <div hidden="hidden" id="gameOver" style="
     width: 100%;
+    height: 100%;
+    padding-top: 50px;
+    padding-bottom: 50px;
     position: absolute;
     margin-top: 50px;
-    background-color: black;">
-        <h1 style="color: white; text-align: center;">Game Over!</h1>
-        <h5 style="color: white; text-align: center">Press the space bar to start again</h5>
+    margin: 0 auto;
+    background-color: transparent;">
+        <div style="width: 100%;
+        position: relative;
+        height: 100%;
+        padding-top: 50px;
+        padding-bottom: 50px;">
+            <img width="auto" height="80%" src="/materials/game-prompt.png" style="display: block; margin-left: auto; margin-right: auto;"/>
+            <h1 style="color: #444444; position: absolute; text-align: center; top: 35%; width: 100%; height: 100%;">Game Over!</h1>
+            <h2 style="color: #444444; position: absolute; text-align: center; top: 40%; width: 100%; height: 100%;"">Press the space bar to start again</h5>
+        </div>
     </div>
 
     <!-- main canvas to be rendered -->
