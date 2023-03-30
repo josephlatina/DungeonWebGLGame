@@ -47,16 +47,32 @@ class Game {
     createBoxCollider(object, onCollide = null) {
         object.collider = {
             type: "BOX",
-            minX: object.model.scale[0] == 1 ? object.model.position[0] - (0.5)*object.model.scale[0]/2 : object.model.position[0] - (0.5)*object.model.scale[0]/2 - 0.25,
-            maxX: object.model.scale[0] == 1 ? object.model.position[0] + (0.5)*object.model.scale[0]/2 : object.model.position[0] + (0.5)*object.model.scale[0]/2 + 0.25,
-            minY: object.model.scale[1] == 1 ? object.model.position[1] - (0.5)*object.model.scale[1]/2 : object.model.position[1] - (0.5)*object.model.scale[1]/2 - 0.25,
-            maxY: object.model.scale[1] == 1 ? object.model.position[1] + (0.5)*object.model.scale[1]/2 : object.model.position[1] + (0.5)*object.model.scale[1]/2 + 0.25,
+            minX: object.model.scale[0] == 1 ? object.model.position[0] -10 - (0.5)*object.model.scale[0]/2 : object.model.position[0] - (0.5)*object.model.scale[0]/2 - 0.25,
+            maxX: object.model.scale[0] == 1 ? object.model.position[0] -10 + (0.5)*object.model.scale[0]/2 : object.model.position[0] + (0.5)*object.model.scale[0]/2 + 0.25,
+            // minY: object.model.scale[1] == 1 ? object.model.position[1] - (0.5)*object.model.scale[1]/2 : object.model.position[1] - (0.5)*object.model.scale[1]/2 - 0.25,
+            // maxY: object.model.scale[1] == 1 ? object.model.position[1] + (0.5)*object.model.scale[1]/2 : object.model.position[1] + (0.5)*object.model.scale[1]/2 + 0.25,
             minZ: object.model.scale[2] == 1 ? object.model.position[2] - (0.5)*object.model.scale[2]/2 : object.model.position[2] - (0.5)*object.model.scale[2]/2 - 0.25,
             maxZ: object.model.scale[2] == 1 ? object.model.position[2] + (0.5)*object.model.scale[2]/2 : object.model.position[2] + (0.5)*object.model.scale[2]/2 + 0.25,
             hit: false,
             onCollide: onCollide ? onCollide : (otherObject) => {
                 console.log(`Collided with ${otherObject.name}`);
-                console.log(object.collider);
+            }
+        };
+        this.collidableObjects.push(object);
+    }
+
+    createInteriorBoxCollider(object, onCollide = null) {
+        object.collider = {
+            type: "BOX",
+            minX: Math.abs(Math.round(object.model.rotation[0])) == 1 ? object.model.position[0] + 5 - object.model.scale[0]*11.9 : object.model.position[0] - (0.8)*object.model.scale[0],
+            maxX: Math.abs(Math.round(object.model.rotation[0])) == 1 ? object.model.position[0] + 5 + object.model.scale[0]*11.9 : object.model.position[0] + (0.8)*object.model.scale[0],
+            // minY: object.model.scale[1] == 1 ? object.model.position[1] - (0.5)*object.model.scale[1]/2 : object.model.position[1] - (0.5)*object.model.scale[1]/2 - 0.25,
+            // maxY: object.model.scale[1] == 1 ? object.model.position[1] + (0.5)*object.model.scale[1]/2 : object.model.position[1] + (0.5)*object.model.scale[1]/2 + 0.25,
+            minZ: Math.abs(Math.round(object.model.rotation[0])) == 1 ? object.model.position[2] - (0.8)*object.model.scale[2] : object.model.position[2] + 5 - object.model.scale[2]*20,
+            maxZ: Math.abs(Math.round(object.model.rotation[0])) == 1 ? object.model.position[2] + (0.8)*object.model.scale[2] : object.model.position[2] + 5+ object.model.scale[2]*20,
+            hit: false,
+            onCollide: onCollide ? onCollide : (otherObject) => {
+                console.log(`Collided with ${otherObject.name}`);
             }
         };
         this.collidableObjects.push(object);
@@ -102,9 +118,6 @@ class Game {
                     const xDist = x - object.model.position[0];
                     // const yDist = y - object.model.position[1];
                     const zDist = z - object.model.position[2];
-                    console.log(xDist);
-                    console.log(x);
-                    console.log()
                     if (xDist < object.collider.radius && xDist > 0) {
                         object.collider.shouldMove[0] = false;
                     }
@@ -144,17 +157,15 @@ class Game {
         this.createSphereCollider(this.player, 5, (otherObject) => {
             console.log(`This is a custom collision of ${otherObject.name}`)
         });
-        // create sphere collider on coins
         for (let i = 0; i < state.objects.length; i++) {
+            // create sphere collider on coins
             if (state.objects[i].name.includes("Coin")) {
                 state.objects[i].model.scale = [3, 3, 3];
                 state.objects[i].model.position[1] = 3;
                 this.createCoinSphereCollider(state.objects[i], 5);
             }
-        }
-        // create sphere collider on enemies
-        for (let i = 0; i < state.objects.length; i++) {
-            if (state.objects[i].name.includes("Enemy")) {
+            // create sphere collider on enemies
+            else if (state.objects[i].name.includes("Enemy")) {
                 this.state.objects[i].model.scale = [15, 15, 15];
                 this.state.objects[i].model.position[1] = 10;
                 this.createSphereCollider(state.objects[i], 10, (otherObject) => {
@@ -164,11 +175,20 @@ class Game {
                     otherObject.collider.hit = true;
                 })
             }
+            // create box collider on walls
+            else if (state.objects[i].name.includes("interior-wall")) {
+                this.createInteriorBoxCollider(state.objects[i], (otherObject) => {
+                    console.log(`This yaall is a custom collision of ${otherObject.name}`);
+                });
+            }
+            else {
+                // create sphere collider on other objects
+                this.createSphereCollider(state.objects[i], 6, (otherObject) => {
+                    console.log(`This is a custom collision of ${otherObject.name}`)
+                });
+            }
+            
         }
-        // create sphere collider on other objects
-        this.createSphereCollider(crate, 6, (otherObject) => {
-            console.log(`This is a custom collision of ${otherObject.name}`)
-        });
         // example - setting up a key press event to move an object in the scene
         document.addEventListener("keydown", (e) => {
             e.preventDefault();
@@ -367,6 +387,7 @@ class Game {
 
         if (this.state.gameStart) {
             this.checkCollision(this.player);
+            console.log(this.player.model.position);
         }
 
 
