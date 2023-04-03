@@ -411,7 +411,7 @@ function drawScene(gl, deltaTime, state) {
     gl.clearColor(state.settings.backgroundColor[0], state.settings.backgroundColor[1], state.settings.backgroundColor[2], 1.0); // Here we are drawing the background color that is saved in our state
     gl.enable(gl.DEPTH_TEST); // Enable depth testing
     gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-    gl.disable(gl.CULL_FACE); // Cull the backface of our objects to be more efficient
+    gl.enable(gl.CULL_FACE); // Cull the backface of our objects to be more efficient
     gl.cullFace(gl.BACK);
     // gl.frontFace(gl.CCW);
     gl.clearDepth(1.0); // Clear everything
