@@ -18,6 +18,7 @@ class Game {
             radius: radius,
             shouldMove: [true, true, true, true],
             hit: false,
+            direction: 1,
             onCollide: onCollide ? onCollide : (otherObject) => {
                 console.log(`Collided with ${otherObject.name}`);
             }
@@ -128,6 +129,57 @@ class Game {
             }
 
         });
+    }
+    moveEnemyObjects(object) {
+        const collider = object.collider;
+        if (collider) {
+            object.translate(vec3.fromValues(0.3 * collider.direction, 0, 0));
+          let otherObject;
+          for (let j = 0; j < this.collidableObjects.length; j++) {
+            otherObject = this.collidableObjects[j];
+            if (otherObject !== object && otherObject.collider) {
+              const otherCollider = otherObject.collider;
+              //sphere collision with skeleton
+              if (collider.type === "SPHERE" && otherCollider.type === "SPHERE") {
+                if (vec3.distance(object.model.position, otherObject.model.position) <= collider.radius + otherCollider.radius) {
+                  collider.onCollide(otherObject);
+                  collider.hit = true;
+                }
+                //box /wall collision
+              } else if (collider.type === "SPHERE" && otherCollider.type === "BOX") {
+                const x = Math.max(otherCollider.minX, Math.min(object.model.position[0], otherCollider.maxX));
+                const z = Math.max(otherCollider.minZ, Math.min(object.model.position[2], otherCollider.maxZ));
+
+                const distance = Math.sqrt(
+                    (x - object.model.position[0]) * (x - object.model.position[0]) +
+                    (z - object.model.position[2]) * (z - object.model.position[2])
+                );
+                    //check to see colliders radius is less than distance away to know if collision happened
+                if (distance < collider.radius) {
+                    const xDist = x - object.model.position[0];
+                    const zDist = z - object.model.position[2];
+                    if (xDist < collider.radius && xDist > 0) {
+                        collider.hit = true;
+                    }
+                    if (xDist < collider.radius && xDist < 0) {
+                        collider.hit = true;
+                    }
+                    if (zDist < collider.radius && zDist > 0) {
+                        collider.hit = true;
+                    }
+                    if (zDist < collider.radius && zDist < 0) {
+                        collider.hit = true;
+                    }
+                }
+              }
+            }
+          }
+          //change of direction
+          if (collider.hit) {
+            collider.direction = -collider.direction;
+            collider.hit = false;
+          }
+        }
     }
 
     // runs once on startup after the scene loads the objects
@@ -379,7 +431,10 @@ class Game {
     // Runs once every frame non stop after the scene loads
     onUpdate(deltaTime) {
         // TODO - Here we can add game logic, like moving game objects, detecting collisions, you name it. Examples of functions can be found in sceneFunctions
-
+        for (let i = 1; i <= 6; i++) {
+            this.enemy = getObject(this.state, "Enemy-"+i.toString());
+            this.moveEnemyObjects(this.enemy);
+        }
         if (this.state.gameStart) {
             this.checkCollision(this.player);
         }
