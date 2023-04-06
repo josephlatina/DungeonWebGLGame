@@ -221,20 +221,38 @@ class Game {
             // create box collider on interior walls
             else if (state.objects[i].name.includes("interior-wall")) {
                 this.createInteriorBoxCollider(state.objects[i], (otherObject) => {
-                    console.log(`This yaall is a custom collision of ${otherObject.name}`);
+                    // console.log(`This yaall is a custom collision of ${otherObject.name}`);
+                    console.log("collison interior-wall");
                 });
             }
             else if (state.objects[i].name.includes("walls")) {
                 this.createBoxCollider(state.objects[i], (otherObject) => {
-                    console.log(`This yaall is a custom collision of ${otherObject.name}`);
+                    // console.log(`This yaall is a custom collision of ${otherObject.name}`);
+                    console.log("collison outer-walls");
                 });
             }
-            else {
+            else if (state.objects[i].name.includes("torch")){
                 // create sphere collider on other objects
                 this.createSphereCollider(state.objects[i], 6, (otherObject) => {
-                    console.log(`This is a custom collision of ${otherObject.name}`)
+                    // console.log(`This is a custom collision of ${otherObject.name}`)
+                    console.log(`collison with Torch`);
                 });
             }
+            else if (state.objects[i].name.includes("Crate")){
+                // create sphere collider on other objects
+                this.createSphereCollider(state.objects[i], 6, (otherObject) => {
+                    // console.log(`This is a custom collision of ${otherObject.name}`)
+                    console.log(`collison with Crate`);
+                });
+            }
+            else{
+                // create sphere collider on other objects
+                this.createSphereCollider(state.objects[i], 6, (otherObject) => {
+                    // console.log(`This is a custom collision of ${otherObject.name}`)
+                    console.log(`collison with another object`);
+                });
+            }
+
             
         }
         // example - setting up a key press event to move an object in the scene
@@ -431,7 +449,7 @@ class Game {
     // Runs once every frame non stop after the scene loads
     onUpdate(deltaTime) {
         // TODO - Here we can add game logic, like moving game objects, detecting collisions, you name it. Examples of functions can be found in sceneFunctions
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 7; i++) {
             this.enemy = getObject(this.state, "Enemy-"+i.toString());
             this.moveEnemyObjects(this.enemy);
         }
@@ -442,7 +460,9 @@ class Game {
 
         // check for game clear conditions
         // position = (-315, -90, -160)
-        if ((this.player.model.position[0] > -190 && this.state.reset == 0 && this.state.coins == 10) || this.player.collider.hit == true) {
+        //value for first level -190
+        console.log(this.player.model.position[0]);
+        if ((this.player.model.position[2] === -65 && this.state.reset == 0 && this.state.coins == 13) || this.player.collider.hit == true) {
             let element = document.querySelector('#gameOver');
             if (element) {
                 let hidden = element.getAttribute("hidden");
