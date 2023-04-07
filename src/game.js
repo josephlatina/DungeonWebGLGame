@@ -133,7 +133,7 @@ class Game {
     moveEnemyObjects(object) {
         const collider = object.collider;
         if (collider) {
-            object.translate(vec3.fromValues(0.3 * collider.direction, 0, 0));
+            object.translate(vec3.fromValues(0.4 * collider.direction, 0, 0));
           let otherObject;
           for (let j = 0; j < this.collidableObjects.length; j++) {
             otherObject = this.collidableObjects[j];
@@ -461,7 +461,7 @@ class Game {
         // check for game clear conditions
         // position = (-315, -90, -160)
         //value for first level -190
-        console.log(this.player.model.position[0]);
+        // console.log(this.player.model.position[0]);
         if ((this.player.model.position[2] === -65 && this.state.reset == 0 && this.state.coins == 13) || this.player.collider.hit == true) {
             let element = document.querySelector('#gameOver');
             if (element) {
